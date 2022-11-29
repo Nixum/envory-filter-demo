@@ -41,7 +41,7 @@ static_resources:
                             runtime: "envoy.wasm.runtime.v8"
                             code:
                               local:
-                                filename: "/var/local/lib/wasm-filters/request-printer.wasm"
+                                filename: "/var/local/lib/wasm-filters/header-filter.wasm"
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router

@@ -1,0 +1,52 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: header-filter
+  namespace: gcp
+spec:
+  workloadSelector:
+    labels:
+      version: beta
+  configPatches:
+    - applyTo: HTTP_FILTER
+      match:
+        context: SIDECAR_INBOUND
+        listener:
+          portNumber: 8080
+          filterChain:
+            filter:
+              name: "envoy.http_connection_manager"
+              subFilter:
+                name: "envoy.router"
+#  换成下面这两个也行
+#            filter:
+#              name: envoy.filters.network.http_connection_manager
+#              subFilter:
+#                name: envoy.filters.http.router
+      patch:
+        operation: INSERT_BEFORE
+        value:
+          name: envoy.lua
+          typed_config:
+            "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua"
+            inlineCode: |
+              function envoy_on_request(request_handle)
+                request_handle:logWarn("---------------- request start -------------------")
+                local headers = request_handle:headers()
+                for key,value in pairs(headers) do
+                  request_handle:logWarn("key=" .. key .. " value=" .. value)
+                end
+
+                request_handle:logInfo("##### metadata #####")
+                local metad = request_handle:metadata()
+                for keym,valuem in pairs(metad) do
+                    request_handle:logWarn("keym=" .. keym .. " valuem=" .. valuem)
+                end
+                request_handle:logWarn("------------ request finish --------------------")
+              end
+
+              function envoy_on_response(response_handle)
+                response_handle:logInfo("--------------- response start ---------------------")
+                response_handle:headers():add("api-version", "moses.cmx")
+                response_handle:logInfo("--------------- response finish ---------------------")
+              end

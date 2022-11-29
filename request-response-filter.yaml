@@ -2,7 +2,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: request-response-filter
-  namespace: istio-system
+  namespace: gcp
 spec:
   configPatches:
     - applyTo: HTTP_FILTER

@@ -1,7 +1,7 @@
 apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
-  name: request-printer
+  name: header-filter
   namespace: gcp
 spec:
   configPatches:
@@ -23,16 +23,21 @@ spec:
           name: envoy.filters.http.wasm
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
-            type_url: type.googleapis.com/envoy.extensions.filters.network.wasm.v3.Wasm
+            type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
             value:
               config:
-#                root_id: add_header
+                configuration:
+                  "@type": type.googleapis.com/google.protobuf.StringValue
+                  value: |
+                    {
+                      "header": "x-wasm-header",
+                      "value": "demo-wasm"
+                    }
                 vm_config:
                   code:
                     local:
-                      filename: /var/local/lib/wasm-filters/request-printer.wasm
+                      filename: /var/local/lib/wasm-filters/header-filter.wasm
                   runtime: envoy.wasm.runtime.v8
-#                  vm_id: "my_vm_id"
                   allow_precompiled: false
   workloadSelector:
     labels:

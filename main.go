@@ -59,7 +59,7 @@ func (p *pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 }
 
 func (p *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
-	proxywasm.LogDebug("loading plugin config")
+	proxywasm.LogInfo("loading plugin config")
 	data, err := proxywasm.GetPluginConfiguration()
 	if data == nil {
 		return types.OnPluginStartStatusOK
