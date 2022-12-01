@@ -10,19 +10,13 @@ spec:
   configPatches:
     - applyTo: HTTP_FILTER
       match:
-        context: SIDECAR_INBOUND
+        context: SIDECAR_OUTBOUND
         listener:
-          portNumber: 8080
           filterChain:
             filter:
-              name: "envoy.http_connection_manager"
+              name: envoy.filters.network.http_connection_manager
               subFilter:
-                name: "envoy.router"
-#  换成下面这两个也行
-#            filter:
-#              name: envoy.filters.network.http_connection_manager
-#              subFilter:
-#                name: envoy.filters.http.router
+                name: envoy.filters.http.router
       patch:
         operation: INSERT_BEFORE
         value:
@@ -31,22 +25,82 @@ spec:
             "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua"
             inlineCode: |
               function envoy_on_request(request_handle)
-                request_handle:logWarn("---------------- request start -------------------")
+                request_handle:logWarn("---------------- OUTBOUND request start -------------------")
                 local headers = request_handle:headers()
                 for key,value in pairs(headers) do
                   request_handle:logWarn("key=" .. key .. " value=" .. value)
                 end
 
-                request_handle:logInfo("##### metadata #####")
+                request_handle:logWarn("---------------- cluster request start -------------------")
+                local headers, body = request_handle:httpCall(
+                "test_cluster",
+                {
+                  [":method"] = "GET",
+                  [":path"] = "/ping",
+                  [":authority"] = "test_cluster"
+                },
+                "hello world",
+                5000)
+                request_handle:logWarn("ping: " .. body)
+                request_handle:logWarn("---------------- cluster request end -------------------")
+
+                request_handle:logWarn("------ OUTBOUND metadata -----")
                 local metad = request_handle:metadata()
                 for keym,valuem in pairs(metad) do
                     request_handle:logWarn("keym=" .. keym .. " valuem=" .. valuem)
                 end
-                request_handle:logWarn("------------ request finish --------------------")
+                request_handle:logWarn("------------ OUTBOUND request finish --------------------")
+                request_handle:logWarn("\n")
               end
 
-              function envoy_on_response(response_handle)
-                response_handle:logInfo("--------------- response start ---------------------")
-                response_handle:headers():add("api-version", "moses.cmx")
-                response_handle:logInfo("--------------- response finish ---------------------")
+    - applyTo: HTTP_FILTER
+      match:
+        context: SIDECAR_INBOUND
+        listener:
+          filterChain:
+            filter:
+              name: envoy.filters.network.http_connection_manager
+              subFilter:
+                name: envoy.filters.http.router
+      patch:
+        operation: INSERT_BEFORE
+        value:
+          name: envoy.lua
+          typed_config:
+            "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua"
+            inlineCode: |
+              function envoy_on_request(request_handle)
+                request_handle:logWarn("---------------- INBOUND request start -------------------")
+                local headers = request_handle:headers()
+                for key,value in pairs(headers) do
+                  request_handle:logWarn("key=" .. key .. " value=" .. value)
+                end
+
+                request_handle:logWarn("------ INBOUND metadata -----")
+                local metad = request_handle:metadata()
+                for keym,valuem in pairs(metad) do
+                    request_handle:logWarn("keym=" .. keym .. " valuem=" .. valuem)
+                end
+                request_handle:logWarn("------------ INBOUND request finish --------------------")
+                request_handle:logWarn("\n")
               end
+
+    - applyTo: CLUSTER
+      match:
+        context: SIDECAR_OUTBOUND
+      patch:
+        operation: ADD
+        value:
+          name: "test_cluster"
+          type: STRICT_DNS
+          connect_timeout: 2s
+          lb_policy: ROUND_ROBIN
+          load_assignment:
+            cluster_name: test_cluster
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address:
+                          address: "oms-gateway.regoo"
+                          port_value: 8080
