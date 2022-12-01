@@ -16,6 +16,7 @@ envory-filter-demo
 
 3. 配置wasm的挂载信息
 对应的deployment的istio注解加上：
+
 `sidecar.istio.io/userVolume: '[{"name":"wasmfilters-dir","configMap": {"name": "header-filter-wasm"}}]'`
 
 `sidecar.istio.io/userVolumeMount: '[{"mountPath":"/var/local/lib/wasm-filters","name":"wasmfilters-dir"}]'`
