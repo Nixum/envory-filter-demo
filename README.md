@@ -17,6 +17,7 @@ envory-filter-demo
 3. 配置wasm的挂载信息
 对应的deployment的istio注解加上：
 `sidecar.istio.io/userVolume: '[{"name":"wasmfilters-dir","configMap": {"name": "header-filter-wasm"}}]'`
+
 `sidecar.istio.io/userVolumeMount: '[{"mountPath":"/var/local/lib/wasm-filters","name":"wasmfilters-dir"}]'`
 
 4. 部署envoy filter
@@ -47,26 +48,37 @@ lua的那种方案倒是可以运行，没啥问题。
 了解envoy里的基本概念:
 
 [get-started-with-envoy-in-5-minutes](https://tetrate.io/blog/get-started-with-envoy-in-5-minutes/)
+
 [service-mesh-102-envoy-configuration](https://www.cncf.io/blog/2021/11/09/service-mesh-102-envoy-configuration/)
 
 istio envoy filter官方文档:
 
 [istio envoy filter](https://istio.io/latest/docs/reference/config/networking/envoy-filter/)
+
 [EnvoyFilter-Samples](https://github.com/istio/istio/wiki/EnvoyFilter-Samples)
 
 使用go wasm 配置的envoy filter:
 
 [基于assemblyscript/Go SDK开发Istio Envoy Wasm Filter](https://ieevee.com/tech/2021/07/23/wasm.html)
+
 [基于 WASM 扩展 Envoy](https://juejin.cn/post/7064582996900184100)
+
 [istio-wasm-extensions-and-ecosystem](https://tetrate.io/blog/istio-wasm-extensions-and-ecosystem/)
+
 [wasm-modules-and-envoy-extensibility-explained-part-1](https://tetrate.io/blog/wasm-modules-and-envoy-extensibility-explained-part-1/)
+
 [proxy-wasm-go-sdk README](https://github.com/tetratelabs/proxy-wasm-go-sdk/blob/main/README.md)
+
 [proxy-wasm-go-sdk OVERVIEW](https://github.com/tetratelabs/proxy-wasm-go-sdk/blob/main/doc/OVERVIEW.md)
+
 [proxy-wasm-go-sdk http header demo](https://github.com/tetratelabs/proxy-wasm-go-sdk/blob/main/examples/http_headers/README.md)
+
 [envoy-wasm-failing-to-load-due-to-missing-import-using-net-http-go-module](https://stackoverflow.com/questions/70933142/envoy-wasm-failing-to-load-due-to-missing-import-using-net-http-go-module)
 
 使用lua配置的envoy filter
 
 [HTTP Request Body Logging with Istio & Envoy](https://devpress.csdn.net/k8s/62f4e7b57e668234661892be.html)
+
 [Istio(十二)：Istio问题排查](https://www.cnblogs.com/renshengdezheli/p/16841748.html)
+
 [Istio(七)：ServiceEntry，sidecar，Envoy Filter](https://www.cnblogs.com/renshengdezheli/p/16839960.html)
